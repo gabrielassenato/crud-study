@@ -2,8 +2,16 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { Recado } from './entities/recado.entity';
 import { CreateRecadoDto } from './dto/create-recados.dto';
 import { UpdateRecadoDto } from './dto/update-recado-dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { read } from 'fs';
 
 export class RecadosService {
+  constructor(
+    @InjectRepository(Recado)
+    private readonly recadoRepository: Repository<Recado>,
+  ) {}
+
   private lastId = 1;
   private recados: Recado[] = [
     {
@@ -21,7 +29,7 @@ export class RecadosService {
   }
 
   findAll() {
-    return this.recados;
+    const recados = this.recadoRepository.find();
   }
 
   findOne(id: number) {
