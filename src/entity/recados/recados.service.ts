@@ -37,8 +37,8 @@ export class RecadosService {
     const recado = await this.recadoRepository.findOne({
       where: {
         id: id,
-      }
-    })
+      },
+    });
 
     if (recado) return recado;
 
@@ -58,7 +58,7 @@ export class RecadosService {
 
   update(id: string, updateRecadoDto: UpdateRecadoDto) {
     const recadoExistenteIndex = this.recados.findIndex(
-      item => item.id === +id,
+      (item) => item.id === +id,
     );
 
     if (recadoExistenteIndex < 0) {
@@ -75,18 +75,15 @@ export class RecadosService {
     return this.recados[recadoExistenteIndex];
   }
 
-  remove(id: number) {
-    const recadoExistenteIndex = this.recados.findIndex(
-      item => item.id === id,
-    );
+  async remove(id: number) {
+    const recado = await this.recadoRepository.findOneBy({
+      id,
+    });
 
-    if (recadoExistenteIndex < 0) {
-      this.throwNotFoundError();
+    if (!recado) {
+      return this.throwNotFoundError();
     }
     
-    const recado = this.recados[recadoExistenteIndex];
-    this.recados.splice(recadoExistenteIndex, 1);
-
-    return recado;
+    return this.recadoRepository.remove(recado);
   }
 }
