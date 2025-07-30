@@ -28,16 +28,20 @@ export class RecadosService {
     throw new HttpException('Recado não encontrado.', HttpStatus.NOT_FOUND);
   }
 
-  findAll() {
-    const recados = this.recadoRepository.find();
+  async findAll() {
+    const recados = await this.recadoRepository.find();
+    return recados;
   }
 
-  findOne(id: number) {
-    const recado = this.recados.find(item => item.id === id);
+  async findOne(id: number) {
+    const recado = await this.recadoRepository.findOne({
+      where: {
+        id: id,
+      }
+    })
 
-    if (recado) {
-      return recado;
-    }
+    if (recado) return recado;
+    
     this.throwNotFoundError();
   }
 
