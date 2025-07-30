@@ -16,6 +16,9 @@ export class Recado {
     @Column({ type: 'boolean', default: false })
     lido: boolean;
 
-    @Column({ type: 'timestamp' })
-    data: Date;
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    createdAt: Date;
+
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    updatedAt: Date;
 }

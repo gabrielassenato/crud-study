@@ -12,7 +12,6 @@ export class RecadosService {
     private readonly recadoRepository: Repository<Recado>,
   ) {}
 
-  private lastId = 1;
   private recados: Recado[] = [
     {
       id: 1,
@@ -20,7 +19,8 @@ export class RecadosService {
       de: 'João',
       para: 'Maria',
       lido: false,
-      data: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
   ];
 
@@ -41,22 +41,19 @@ export class RecadosService {
     })
 
     if (recado) return recado;
-    
+
     this.throwNotFoundError();
   }
 
-  create(createRecadoDto: CreateRecadoDto) {
-    this.lastId++; // vai incrementar +1 no lastId declarado acima
-    const id = this.lastId;
-    const newRecado: Recado = {
-      id,
+  async create(createRecadoDto: CreateRecadoDto) {
+    const newRecado = {
       ...createRecadoDto,
       lido: false,
-      data: new Date(),
     };
-    this.recados.push(newRecado);
 
-    return newRecado;
+    const recado = await this.recadoRepository.create(newRecado);
+
+    return this.recadoRepository.save(recado);
   }
 
   update(id: string, updateRecadoDto: UpdateRecadoDto) {
