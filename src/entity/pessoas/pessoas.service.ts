@@ -5,6 +5,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Pessoa } from './entities/pessoa.entity';
+import { CreatePessoasDto } from './dto/create-pessoas.dto';
+import { UpdatePessoasDto } from './dto/update-pessoas.dto';
 
 @Injectable()
 export class PessoasService {
@@ -31,18 +33,20 @@ export class PessoasService {
     throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
   }
 
-  create(body: any) {
+  create(createPessoasDto: CreatePessoasDto) {
     this.lastId++;
     const id = this.lastId;
     const newPessoa: Pessoa = {
       id,
-      ...body,
+      ...createPessoasDto,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
     this.pessoas.push(newPessoa);
     return newPessoa;
   }
 
-  update(id: string, body: any) {
+  update(id: string, updatePessoasDto: UpdatePessoasDto) {
     const pessoaIndex = this.pessoas.findIndex((pessoa) => pessoa.id === +id);
 
     if (pessoaIndex < 0) {
@@ -53,9 +57,9 @@ export class PessoasService {
 
     this.pessoas[pessoaIndex] = {
       ...pessoaExistente,
-      ...body,
+      ...updatePessoasDto,
     };
-    
+
     return this.pessoas[pessoaIndex];
   }
 
@@ -67,7 +71,7 @@ export class PessoasService {
     }
 
     const pessoa = this.pessoas[pessoaIndex];
-    
+
     this.pessoas.splice(pessoaIndex, 1);
 
     return pessoa;
