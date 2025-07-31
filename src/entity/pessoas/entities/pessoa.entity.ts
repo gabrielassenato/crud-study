@@ -9,9 +9,6 @@ export class Pessoa {
   nome: string;
 
   @Column()
-  idade: number;
-
-  @Column()
   email: string;
 
   @CreateDateColumn()
