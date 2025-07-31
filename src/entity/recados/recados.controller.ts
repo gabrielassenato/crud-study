@@ -15,7 +15,7 @@ import { UpdateRecadoDto } from './dto/update-recado-dto';
 
 @Controller('recados')
 export class RecadosController {
-    constructor(private readonly recadosService: RecadosService) {}
+  constructor(private readonly recadosService: RecadosService) {}
   @Get()
   findAll(@Query() pagination: any) {
     // const { limit = 10, offset = 0 } = pagination;
@@ -34,7 +34,10 @@ export class RecadosController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRecadoDto: UpdateRecadoDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateRecadoDto: UpdateRecadoDto,
+  ) {
     return this.recadosService.update(id, updateRecadoDto);
   }
 
