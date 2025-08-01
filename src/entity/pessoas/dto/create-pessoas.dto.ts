@@ -19,5 +19,6 @@ export class CreatePessoaDto {
 
   @IsString()
   @IsNotEmpty()
-  readonly passwordHash: string;
+  @MinLength(6)
+  readonly password: string;
 }
