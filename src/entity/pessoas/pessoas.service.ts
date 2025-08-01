@@ -73,17 +73,15 @@ export class PessoasService {
   //     return this.pessoas[pessoaIndex];
   //   }
 
-    remove(id: string) {
-      const pessoaIndex = this.pessoas.findIndex((pessoa) => pessoa.id === +id);
+    async remove(id: number) {
+      const pessoa = await this.pessoasRepository.findOneBy({
+        id
+       });
 
-      if (pessoaIndex < 0) {
-        throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
-      }
+       if (!pessoa) {
+         throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
+       }
 
-      const pessoa = this.pessoas[pessoaIndex];
-
-      this.pessoas.splice(pessoaIndex, 1);
-
-      return pessoa;
+       return this.pessoasRepository.remove(pessoa);
     }
 }
