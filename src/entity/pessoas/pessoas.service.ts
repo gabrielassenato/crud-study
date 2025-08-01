@@ -1,79 +1,89 @@
 import {
+  ConflictException,
   HttpException,
   HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { Pessoa } from './entities/pessoa.entity';
-import { CreatePessoasDto } from './dto/create-pessoas.dto';
-import { UpdatePessoasDto } from './dto/update-pessoas.dto';
+import { CreatePessoaDto } from './dto/create-pessoas.dto';
+import { UpdatePessoaDto } from './dto/update-pessoas.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { read } from 'fs';
 
 @Injectable()
 export class PessoasService {
-  private lastId = 1; // Simula um ID auto-incremental
-  private pessoas: Pessoa[] = [
-    {
-      id: 1,
-      nome: 'fulano',
-      email: 'fulano@gmail.com',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ];
+  constructor(
+    @InjectRepository(Pessoa)
+    private readonly pessoasRepository: Repository<Pessoa>,
+  ) {}
 
-  findAll() {
-    return this.pessoas;
-  }
+  async create(createPessoaDto: CreatePessoaDto) {
+    try {
+      const pessoaData = {
+        nome: createPessoaDto.nome,
+        email: createPessoaDto.email,
+        passwordHash: createPessoaDto.password, // Assuming password is hashed before saving
+      };
 
-  findOne(id: string) {
-    const pessoa = this.pessoas.find((pessoa) => pessoa.id === +id);
-
-    if (pessoa) return pessoa;
-
-    throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
-  }
-
-  create(createPessoasDto: CreatePessoasDto) {
-    this.lastId++;
-    const id = this.lastId;
-    const newPessoa: Pessoa = {
-      id,
-      ...createPessoasDto,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.pessoas.push(newPessoa);
-    return newPessoa;
-  }
-
-  update(id: string, updatePessoasDto: UpdatePessoasDto) {
-    const pessoaIndex = this.pessoas.findIndex((pessoa) => pessoa.id === +id);
-
-    if (pessoaIndex < 0) {
-      throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
+      const newPessoa = this.pessoasRepository.create(pessoaData);
+      await this.pessoasRepository.save(newPessoa);
+      return newPessoa;
+    } catch (error) {
+      if (error.code === '23505') {
+        // Unique constraint violation
+        throw new ConflictException('Email já cadastrado.');
+      }
+      throw error;
     }
-
-    const pessoaExistente = this.pessoas[pessoaIndex];
-
-    this.pessoas[pessoaIndex] = {
-      ...pessoaExistente,
-      ...updatePessoasDto,
-    };
-
-    return this.pessoas[pessoaIndex];
   }
 
-  remove(id: string) {
-    const pessoaIndex = this.pessoas.findIndex((pessoa) => pessoa.id === +id);
+  async findAll() {
+    const pessoas = await this.pessoasRepository.find({
+      order: {
+        createdAt: 'DESC', // Order by createdAt in descending order
+      }
+    });
+    return pessoas;
+  }
 
-    if (pessoaIndex < 0) {
-      throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
+  //   findOne(id: string) {
+  //     const pessoa = this.pessoas.find((pessoa) => pessoa.id === +id);
+
+  //     if (pessoa) return pessoa;
+
+  //     throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
+  //   }
+
+  //   update(id: string, updatePessoaDto: UpdatePessoaDto) {
+  //     const pessoaIndex = this.pessoas.findIndex((pessoa) => pessoa.id === +id);
+
+  //     if (pessoaIndex < 0) {
+  //       throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
+  //     }
+
+  //     const pessoaExistente = this.pessoas[pessoaIndex];
+
+  //     this.pessoas[pessoaIndex] = {
+  //       ...pessoaExistente,
+  //       ...updatePessoaDto,
+  //     };
+
+  //     return this.pessoas[pessoaIndex];
+  //   }
+
+    remove(id: string) {
+      const pessoaIndex = this.pessoas.findIndex((pessoa) => pessoa.id === +id);
+
+      if (pessoaIndex < 0) {
+        throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
+      }
+
+      const pessoa = this.pessoas[pessoaIndex];
+
+      this.pessoas.splice(pessoaIndex, 1);
+
+      return pessoa;
     }
-
-    const pessoa = this.pessoas[pessoaIndex];
-
-    this.pessoas.splice(pessoaIndex, 1);
-
-    return pessoa;
-  }
 }
