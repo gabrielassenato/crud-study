@@ -1,13 +1,14 @@
-import { IsString, IsNotEmpty, MinLength, MaxLength, IsEmail } from "class-validator";
+import { IsString, MinLength, MaxLength, IsEmail, IsOptional } from "class-validator";
 
 export class UpdatePessoaDto {
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MinLength(2)
   @MaxLength(100)
   readonly nome?: string;
 
-  @IsEmail()
-  @IsNotEmpty()
-  readonly email?: string;
+  @IsString()
+  @IsOptional()
+  @MinLength(6)
+  readonly password?: string;
 }

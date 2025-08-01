@@ -43,45 +43,50 @@ export class PessoasService {
     const pessoas = await this.pessoasRepository.find({
       order: {
         createdAt: 'DESC', // Order by createdAt in descending order
-      }
+      },
     });
     return pessoas;
   }
 
-  //   findOne(id: string) {
-  //     const pessoa = this.pessoas.find((pessoa) => pessoa.id === +id);
-
-  //     if (pessoa) return pessoa;
-
-  //     throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
-  //   }
-
-  //   update(id: string, updatePessoaDto: UpdatePessoaDto) {
-  //     const pessoaIndex = this.pessoas.findIndex((pessoa) => pessoa.id === +id);
-
-  //     if (pessoaIndex < 0) {
-  //       throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
-  //     }
-
-  //     const pessoaExistente = this.pessoas[pessoaIndex];
-
-  //     this.pessoas[pessoaIndex] = {
-  //       ...pessoaExistente,
-  //       ...updatePessoaDto,
-  //     };
-
-  //     return this.pessoas[pessoaIndex];
-  //   }
-
-    async remove(id: number) {
+    async findOne(id: number) {
       const pessoa = await this.pessoasRepository.findOneBy({
-        id
-       });
+        id,
+      });
 
-       if (!pessoa) {
-         throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
-       }
+      if (!pessoa) {
+        throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
+      }
 
-       return this.pessoasRepository.remove(pessoa);
+      return pessoa;
     }
+
+  async update(id: number, updatePessoaDto: UpdatePessoaDto) {
+    const pessoaData = {
+      nome: updatePessoaDto?.nome,
+      passwordHash: updatePessoaDto?.password,
+    };
+
+    const pessoa = await this.pessoasRepository.preload({
+      id,
+      ...pessoaData,
+    });
+
+    if (!pessoa) {
+      throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
+    }
+
+    return this.pessoasRepository.save(pessoa);
+  }
+
+  async remove(id: number) {
+    const pessoa = await this.pessoasRepository.findOneBy({
+      id,
+    });
+
+    if (!pessoa) {
+      throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
+    }
+
+    return this.pessoasRepository.remove(pessoa);
+  }
 }

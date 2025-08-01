@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from "@nestjs/common";
 import { PessoasService } from "./pessoas.service";
 import { CreatePessoaDto } from "./dto/create-pessoas.dto";
 import { UpdatePessoaDto } from "./dto/update-pessoas.dto";
@@ -17,18 +17,18 @@ export class PessoasController {
         return this.pessoasService.findAll();
     }
 
-    // @Get(':id')
-    // findOne(@Param('id') id: string) {
-    //     return this.pessoasService.findOne(id);
-    // }
+    @Get(':id')
+    findOne(@Param('id', ParseIntPipe) id: number) {
+        return this.pessoasService.findOne(id);
+    }
 
-    // @Patch(':id')
-    // update(@Param('id') id: string, @Body() updatePessoaDto: UpdatePessoaDto) {
-    //     return this.pessoasService.update(id, updatePessoaDto);
-    // }
+    @Patch(':id')
+    update(@Param('id', ParseIntPipe) id: number, @Body() updatePessoaDto: UpdatePessoaDto) { //parseIntPipe converts the id string from the URL to a number
+        return this.pessoasService.update(id, updatePessoaDto);
+    }
 
     @Delete(':id')
-    remove(@Param('id') id: number) {
+    remove(@Param('id', ParseIntPipe) id: number) {
         return this.pessoasService.remove(id);
     }
 }
