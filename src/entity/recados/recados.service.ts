@@ -4,32 +4,36 @@ import { CreateRecadoDto } from './dto/create-recados.dto';
 import { UpdateRecadoDto } from './dto/update-recado-dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { read } from 'fs';
+import { PessoasService } from '../pessoas/pessoas.service';
 
 export class RecadosService {
   constructor(
     @InjectRepository(Recado)
     private readonly recadoRepository: Repository<Recado>,
+    private readonly pessoasService: PessoasService, // importando o serviço de pessoas para usar se necessário
   ) {}
-
-  private recados: Recado[] = [
-    {
-      id: 1,
-      texto: 'Recado 1',
-      de: 'João',
-      para: 'Maria',
-      lido: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ];
 
   throwNotFoundError() {
     throw new HttpException('Recado não encontrado.', HttpStatus.NOT_FOUND);
   }
 
   async findAll() {
-    const recados = await this.recadoRepository.find();
+    const recados = await this.recadoRepository.find({
+      order: {
+        createdAt: 'DESC',
+      },
+      relations: ['de', 'para'],
+      select: {
+        de: {
+          id: true,
+          nome: true,
+        },
+        para: {
+          id: true,
+          nome: true,
+        },
+      },
+    });
     return recados;
   }
 
@@ -37,6 +41,17 @@ export class RecadosService {
     const recado = await this.recadoRepository.findOne({
       where: {
         id: id,
+      },
+      relations: ['de', 'para'],
+      select: {
+        de: {
+          id: true,
+          nome: true,
+        },
+        para: {
+          id: true,
+          nome: true,
+        },
       },
     });
 
@@ -46,14 +61,31 @@ export class RecadosService {
   }
 
   async create(createRecadoDto: CreateRecadoDto) {
+    const { deId, paraId } = createRecadoDto;
+
+    const de = await this.pessoasService.findOne(deId);
+    const para = await this.pessoasService.findOne(paraId);
+
     const newRecado = {
-      ...createRecadoDto,
+      texto: createRecadoDto.texto,
+      de: de,
+      para: para,
       lido: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     const recado = await this.recadoRepository.create(newRecado);
-
-    return this.recadoRepository.save(recado);
+    await this.recadoRepository.save(recado);
+    return {
+      ...recado,
+      de: {
+        nome: de.nome,
+      },
+      para: {
+        nome: para.nome,
+      },
+    };
   }
 
   async update(id: number, updateRecadoDto: UpdateRecadoDto) {
