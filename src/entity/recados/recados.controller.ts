@@ -12,15 +12,15 @@ import {
 import { RecadosService } from './recados.service';
 import { CreateRecadoDto } from './dto/create-recados.dto';
 import { UpdateRecadoDto } from './dto/update-recado-dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('recados')
 export class RecadosController {
   constructor(private readonly recadosService: RecadosService) {}
   @Get()
-  findAll(@Query() pagination: any) {
-    // const { limit = 10, offset = 0 } = pagination;
-    // return `Todos os recados encontrados. Limit=${limit}, Offset=${offset}`;
-    return this.recadosService.findAll();
+  async findAll(@Query() paginationDto: PaginationDto) {
+    const recados = await this.recadosService.findAll(paginationDto)
+    return recados;
   }
 
   @Get(':id')

@@ -5,6 +5,7 @@ import { UpdateRecadoDto } from './dto/update-recado-dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PessoasService } from '../pessoas/pessoas.service';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 export class RecadosService {
   constructor(
@@ -16,9 +17,12 @@ export class RecadosService {
   throwNotFoundError() {
     throw new HttpException('Recado não encontrado.', HttpStatus.NOT_FOUND);
   }
-
-  async findAll() {
+  async findAll(paginationDto?: PaginationDto) {
+    const { limit = 10, offset = 0 } = paginationDto || {};
+    
     const recados = await this.recadoRepository.find({
+      take: limit, // quantidade de registros a serem retornados
+      skip: offset, // quantidade de registros a serem pulados
       order: {
         createdAt: 'DESC',
       },
