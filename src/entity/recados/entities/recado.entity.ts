@@ -26,11 +26,11 @@ export class Recado {
   updatedAt: Date;
 
   /* virtual fields */
-  @ManyToOne(() => Pessoa)
+  @ManyToOne(() => Pessoa, { onDelete: 'CASCADE', onUpdate: 'CASCADE' }) // quando a pessoa for deletada, o recado também será deletado
   @JoinColumn({ name: 'de'})
   de: Pessoa;
 
-  @ManyToOne(() => Pessoa)
+  @ManyToOne(() => Pessoa, { onDelete: 'CASCADE', onUpdate: 'CASCADE' }) // quando a pessoa for deletada, o recado também será deletado
   @JoinColumn({ name: 'para' })
   para: Pessoa;
 }
