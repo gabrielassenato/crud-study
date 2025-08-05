@@ -1,7 +1,8 @@
-import { CallHandler, ExecutionContext, NestInterceptor } from '@nestjs/common';
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { map, of, tap } from 'rxjs';
 
 // Este exemplo intercepta a resposta do controller e adiciona um cabeçalho
+@Injectable()
 export class ChangeDataInterceptor implements NestInterceptor {
   private readonly cache = new Map();
 

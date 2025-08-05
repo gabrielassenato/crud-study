@@ -8,7 +8,7 @@ import {
 @Injectable()
 export class ParseIntIdPipe implements PipeTransform {
   transform(value: string, metadata: ArgumentMetadata) {
-    console.log('ParseIntIdPipe executado depois do interceptor');
+    // console.log('ParseIntIdPipe executado depois do interceptor');
     if (metadata.type !== 'param' || metadata.data !== 'id') {
       return value;
     }
