@@ -17,21 +17,26 @@ import { UpdateRecadoDto } from './dto/update-recado-dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { ParseIntIdPipe } from 'src/common/pipes/parse-int-id.pipe';
 import { AddHeaderInterceptor } from 'src/common/interceptors/add-header.interceptor';
+import { TimingConnectionInterceptor } from 'src/common/interceptors/timing-connection.interceptor';
 
 @Controller('recados')
 @UsePipes(ParseIntIdPipe)
 export class RecadosController {
   constructor(private readonly recadosService: RecadosService) {}
+  
+  @UseInterceptors(TimingConnectionInterceptor)
   @Get()
   async findAll(@Query() paginationDto: PaginationDto) {
-    const recados = await this.recadosService.findAll(paginationDto)
+    const recados = await this.recadosService.findAll(paginationDto);
     return recados;
   }
 
-  @Get(':id')
   @UseInterceptors(AddHeaderInterceptor)
+  @Get(':id')
   findOne(@Param('id') id: number) {
-    console.log('Controller findOne vai ser executado depois do interceptor e do pipe');
+    console.log(
+      'Controller findOne vai ser executado depois do interceptor e do pipe',
+    );
     return this.recadosService.findOne(id);
   }
 
@@ -41,10 +46,7 @@ export class RecadosController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: number,
-    @Body() updateRecadoDto: UpdateRecadoDto,
-  ) {
+  update(@Param('id') id: number, @Body() updateRecadoDto: UpdateRecadoDto) {
     return this.recadosService.update(id, updateRecadoDto);
   }
 
