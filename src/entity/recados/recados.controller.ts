@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import { UpdateRecadoDto } from './dto/update-recado-dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { ParseIntIdPipe } from 'src/common/pipes/parse-int-id.pipe';
 import { AuthTokenInterceptor } from 'src/common/interceptors/auth-token.interceptor';
+import { Request } from 'express';
 
 @UsePipes(ParseIntIdPipe)
 @Controller('recados')
@@ -25,7 +27,8 @@ export class RecadosController {
   // nesse exemplo só estamos verificando o token no findAll
   @UseInterceptors(AuthTokenInterceptor)
   @Get()
-  async findAll(@Query() paginationDto: PaginationDto) {
+  async findAll(@Query() paginationDto: PaginationDto, @Req() req: Request) {
+    console.log('RecadosController:', req['user']);
     const recados = await this.recadosService.findAll(paginationDto);
     return recados;
   }
