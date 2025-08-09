@@ -5,9 +5,9 @@ import { RecadosModule } from './entity/recados/recados.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PessoasModule } from './entity/pessoas/pessoas.module';
 import { SimpleMiddleware } from './common/middlewares/simple.middleware';
-import { AnotherMiddleware } from './common/middlewares/another.middleware';
 import { MyExceptionFilter } from './common/exception-filters/my-exception.filter';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { IsAdminGuard } from './common/guards/is-admin.guard';
 
 @Module({
   imports: [TypeOrmModule.forRoot({
@@ -25,6 +25,10 @@ import { APP_FILTER } from '@nestjs/core';
     {
       provide: APP_FILTER,
       useClass: MyExceptionFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: IsAdminGuard,
     }
   ],
 })
@@ -32,10 +36,6 @@ export class AppModule implements NestModule {
   // Middleware global
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(SimpleMiddleware /*, AnotherMiddleware*/).forRoutes({
-      path: 'recados/*', //decide a rota que o middleware será aplicado
-      method: RequestMethod.ALL, //decide o método que o middleware será aplicado
-    });
-    consumer.apply(AnotherMiddleware).forRoutes({
       path: 'recados/*', //decide a rota que o middleware será aplicado
       method: RequestMethod.ALL, //decide o método que o middleware será aplicado
     });

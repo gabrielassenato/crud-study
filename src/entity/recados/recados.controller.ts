@@ -32,9 +32,7 @@ export class RecadosController {
     console.log('RecadosController:', req['user']);
     const recados = await this.recadosService.findAll(paginationDto);
 
-    throw new BadRequestException('MENSAGEM');
-
-    // return recados;
+    return recados;
   }
 
   @Get(':id')
