@@ -6,6 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PessoasModule } from './entity/pessoas/pessoas.module';
 import { SimpleMiddleware } from './common/middlewares/simple.middleware';
 import { AnotherMiddleware } from './common/middlewares/another.middleware';
+import { MyExceptionFilter } from './common/exception-filters/my-exception.filter';
+import { APP_FILTER } from '@nestjs/core';
 
 @Module({
   imports: [TypeOrmModule.forRoot({
@@ -19,7 +21,12 @@ import { AnotherMiddleware } from './common/middlewares/another.middleware';
     synchronize: true, // sincroniza o banco de dados
   }), RecadosModule, PessoasModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, 
+    {
+      provide: APP_FILTER,
+      useClass: MyExceptionFilter,
+    }
+  ],
 })
 export class AppModule implements NestModule {
   // Middleware global

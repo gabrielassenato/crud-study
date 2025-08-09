@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -30,7 +31,10 @@ export class RecadosController {
   async findAll(@Query() paginationDto: PaginationDto, @Req() req: Request) {
     console.log('RecadosController:', req['user']);
     const recados = await this.recadosService.findAll(paginationDto);
-    return recados;
+
+    throw new BadRequestException('MENSAGEM');
+
+    // return recados;
   }
 
   @Get(':id')
