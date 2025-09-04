@@ -4,18 +4,30 @@ import { AppService } from './app.service';
 import { RecadosModule } from './entity/recados/recados.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PessoasModule } from './entity/pessoas/pessoas.module';
+import { ConfigModule } from '@nestjs/config';
 @Module({
-  imports: [TypeOrmModule.forRoot({
-    type: 'postgres',
-    host: 'localhost',
-    port: 5432,
-    username: 'admin',
-    password: 'admin',
-    database: 'recados',
-    autoLoadEntities: true, // carrega automaticamente as entidades
-    synchronize: true, // sincroniza o banco de dados
-  }), RecadosModule, PessoasModule],
+  imports: [
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+    }),
+    TypeOrmModule.forRoot({
+      type: process.env.DB_TYPE as any,
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
+      autoLoadEntities: Boolean(process.env.DB_AUTOLOADENTITIES),
+      synchronize: Boolean(process.env.DB_SYNCHRONIZE),
+    }),
+    RecadosModule,
+    PessoasModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {
+  constructor() {
+    console.log('Variável de ambiente:', process.env.ESSA_E_UMA_VARIAVEL);
+  }
+}
