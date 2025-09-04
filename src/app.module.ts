@@ -5,6 +5,7 @@ import { RecadosModule } from './entity/recados/recados.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PessoasModule } from './entity/pessoas/pessoas.module';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -22,12 +23,11 @@ import { ConfigModule } from '@nestjs/config';
     }),
     RecadosModule,
     PessoasModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {
-  constructor() {
-    console.log('Variável de ambiente:', process.env.ESSA_E_UMA_VARIAVEL);
-  }
+  constructor() {}
 }

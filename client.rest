@@ -31,3 +31,33 @@ Content-Type: application/json
 
 ### Deleta um recado
 DELETE {{baseUrl}}/recados/3/
+
+# PESSOAS
+
+### Lista todas as pessoas
+GET {{baseUrl}}/pessoas/
+
+### Lista uma pessoa específica
+GET {{baseUrl}}/pessoas/2/
+
+### Cria uma nova pessoa
+POST {{baseUrl}}/pessoas/
+Content-Type: application/json
+
+{
+    "nome": "João",
+    "email": "joao@example.com",
+    "password": "senha123"
+}
+
+### Atualiza uma pessoa existente
+PATCH {{baseUrl}}/pessoas/4/
+Content-Type: application/json
+
+{
+    "nome": "João Silva",
+    "password": "novaSenha123"
+}
+
+### Deleta uma pessoa
+DELETE {{baseUrl}}/pessoas/2/

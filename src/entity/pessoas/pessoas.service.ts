@@ -11,20 +11,27 @@ import { UpdatePessoaDto } from './dto/update-pessoas.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { read } from 'fs';
+import { HashingService } from 'src/auth/hashing/hashing.service';
 
 @Injectable()
 export class PessoasService {
   constructor(
     @InjectRepository(Pessoa)
     private readonly pessoasRepository: Repository<Pessoa>,
+    private readonly hashingService: HashingService,
   ) {}
 
   async create(createPessoaDto: CreatePessoaDto) {
     try {
+      // vai criar a hash da senha a partir da senha que veio no DTO
+      const passwordHash = await this.hashingService.hash(
+        createPessoaDto.password,
+      );
+
       const pessoaData = {
         nome: createPessoaDto.nome,
         email: createPessoaDto.email,
-        passwordHash: createPessoaDto.password, // Assuming password is hashed before saving
+        passwordHash // Assuming password is hashed before saving
       };
 
       const newPessoa = this.pessoasRepository.create(pessoaData);
@@ -63,8 +70,16 @@ export class PessoasService {
   async update(id: number, updatePessoaDto: UpdatePessoaDto) {
     const pessoaData = {
       nome: updatePessoaDto?.nome,
-      passwordHash: updatePessoaDto?.password,
     };
+
+    if (updatePessoaDto?.password) {
+      // Se uma nova senha for fornecida, crie o hash dela
+      const passwordHash = await this.hashingService.hash(
+        updatePessoaDto.password,
+      );
+
+      pessoaData['passwordHash'] = passwordHash;
+    }
 
     const pessoa = await this.pessoasRepository.preload({
       id,
