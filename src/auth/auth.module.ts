@@ -3,9 +3,12 @@ import { BcryptService } from "./hashing/bcrypt.service";
 import { HashingService } from "./hashing/hashing.service";
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { Pessoa } from "src/entity/pessoas/entities/pessoa.entity";
 
 @Global()
 @Module({
+    imports: [TypeOrmModule.forFeature([Pessoa])],
     providers: [
         {
             provide: HashingService,
