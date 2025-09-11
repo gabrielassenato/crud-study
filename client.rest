@@ -1,4 +1,8 @@
 @baseUrl = http://localhost:3000
+@authToken = {{auth.response.body.accessToken}}
+
+#
+
 
 # RECADOS
 
@@ -32,10 +36,15 @@ Content-Type: application/json
 ### Deleta um recado
 DELETE {{baseUrl}}/recados/3/
 
+
+#
+
+
 # PESSOAS
 
 ### Lista todas as pessoas
 GET {{baseUrl}}/pessoas/
+Authorization: Bearer {{authToken}}
 
 ### Lista uma pessoa específica
 GET {{baseUrl}}/pessoas/2/
@@ -61,3 +70,18 @@ Content-Type: application/json
 
 ### Deleta uma pessoa
 DELETE {{baseUrl}}/pessoas/2/
+
+
+#
+
+# AUTHENTICATE
+
+### Auth
+# @name auth
+POST {{baseUrl}}/auth/
+Content-Type: application/json
+
+{
+    "email": "gabriel@example.com",
+    "password": "senha123"
+}
