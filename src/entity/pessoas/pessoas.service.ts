@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -91,6 +92,10 @@ export class PessoasService {
       throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
     }
 
+    if (pessoa.id !== tokenPayload.sub) {
+      throw new ForbiddenException('Você não pode atualizar uma pessoa que não seja você.',);
+    }
+
     return this.pessoasRepository.save(pessoa);
   }
 
@@ -102,6 +107,12 @@ export class PessoasService {
     if (!pessoa) {
       throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
     }
+
+
+    if (pessoa.id !== tokenPayload.sub) {
+      throw new ForbiddenException('Você não pode apagar uma pessoa que não seja você.',);
+    }
+
 
     return this.pessoasRepository.remove(pessoa);
   }
