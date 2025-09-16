@@ -50,17 +50,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const accessToken = await this.signJwtAsync<Partial<Pessoa>>(
-      pessoa.id,
-      this.jwtConfiguration.jwtTtl,
-      { email: pessoa.email },
-    );
-
-    const refreshToken = await this.signJwtAsync(
-      pessoa.id,
-      this.jwtConfiguration.jwtRefreshTtl,
-    );
-
     return this.createTokens(pessoa);
   }
 
