@@ -8,6 +8,7 @@ import jwtConfig from './config/jwt.config';
 import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { create } from 'domain';
 
 @Injectable()
 export class AuthService {
@@ -60,6 +61,21 @@ export class AuthService {
       this.jwtConfiguration.jwtRefreshTtl,
     );
 
+    return this.createTokens(pessoa);
+  }
+
+  private async createTokens(pessoa: Pessoa) {
+    const accessToken = await this.signJwtAsync<Partial<Pessoa>>(
+      pessoa.id,
+      this.jwtConfiguration.jwtTtl,
+      { email: pessoa.email },
+    );
+
+    const refreshToken = await this.signJwtAsync(
+      pessoa.id,
+      this.jwtConfiguration.jwtRefreshTtl,
+    );
+
     return { accessToken, refreshToken };
   }
 
@@ -78,7 +94,24 @@ export class AuthService {
     );
   }
 
-  refreshTokens(refreshTokenDto: RefreshTokenDto) {
-    return true;
+  async refreshTokens(refreshTokenDto: RefreshTokenDto) {
+    try {
+      const {sub} = await this.jwtService.verifyAsync(
+        refreshTokenDto.refreshToken,
+        this.jwtConfiguration
+      )
+
+      const pessoa = await this.pessoaRepository.findOneBy({
+        id: Number(sub)
+      })
+
+      if (!pessoa) {
+        throw new Error('User not found');
+      }
+
+      return this.createTokens(pessoa);
+    } catch (error) {
+      throw new UnauthorizedException(error.message);
+    }
   }
 }
