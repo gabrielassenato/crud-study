@@ -29,6 +29,7 @@ export class AuthService {
 
     const pessoa = await this.pessoaRepository.findOneBy({
       email: loginDto.email,
+      active: true,
     });
 
     if (pessoa) {
@@ -43,11 +44,11 @@ export class AuthService {
     }
 
     if (throwError) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Pessoa não autorizada');
     }
 
     if (!pessoa) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Pessoa não autorizada');
     }
 
     return this.createTokens(pessoa);
@@ -91,11 +92,12 @@ export class AuthService {
       )
 
       const pessoa = await this.pessoaRepository.findOneBy({
-        id: Number(sub)
+        id: Number(sub),
+        active: true,
       })
 
       if (!pessoa) {
-        throw new Error('User not found');
+        throw new Error('Pessoa não autorizada');
       }
 
       return this.createTokens(pessoa);

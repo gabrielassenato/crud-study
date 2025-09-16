@@ -17,6 +17,9 @@ export class Pessoa {
   @Column({ length: 255 })
   passwordHash: string;
 
+  @Column({ default: true })
+  active: boolean;
+
   @CreateDateColumn()
   createdAt?: Date;
 
