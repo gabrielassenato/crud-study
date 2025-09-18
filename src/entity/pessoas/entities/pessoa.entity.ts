@@ -26,6 +26,9 @@ export class Pessoa {
   @UpdateDateColumn()
   updatedAt?: Date;
 
+  @Column({ default: ''})
+  picture: string;
+
   /* virtual fields */
   @OneToMany(() => Recado, recado => recado.de)
   recadosEnviados: Recado[];

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   HttpException,
@@ -14,6 +15,8 @@ import { Repository } from 'typeorm';
 import { read } from 'fs';
 import { HashingService } from 'src/auth/hashing/hashing.service';
 import { TokenPayloadDto } from 'src/auth/dto/token-payload.dto';
+import * as path from 'path'; // gera os caminhos via string
+import * as fs from 'fs/promises'; // para salvar os arquivos
 
 @Injectable()
 export class PessoasService {
@@ -115,5 +118,28 @@ export class PessoasService {
 
 
     return this.pessoasRepository.remove(pessoa);
+  }
+
+  async uploadPicture(file: Express.Multer.File, tokenPayload: TokenPayloadDto) {
+    if (file.size < 1024) {
+      throw new BadRequestException('File too small');
+    }
+
+    const pessoa = await this.findOne(tokenPayload.sub)
+
+    const fileExtension = path
+      .extname(file.originalname)
+      .toLocaleLowerCase()
+      .substring(1);
+    const fileName = `${tokenPayload.sub}.${fileExtension}`; // dessa forma a agente sobrescreve a foto antiga, pois estamos salvando-a com o mesmo nome
+    // se não fosse a intenção sobrescrever, poderíamos usar o date.now() ou o uuid para gerar um nome único
+    const fileFullPath = path.resolve(process.cwd(), 'pictures', fileName); // process.cwd() pega o diretório raiz do projeto
+    
+    await fs.writeFile(fileFullPath, file.buffer); // escreve o arquivo no disco
+
+    pessoa.picture = fileName;
+    await this.pessoasRepository.save(pessoa);
+
+    return pessoa;
   }
 }
