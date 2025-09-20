@@ -31,8 +31,18 @@ describe('PessoasService', () => {
     );
     hashingService = module.get<HashingService>(HashingService);
   });
-  
+
   it('deve estar definido', () => {
     expect(pessoaService).toBeDefined();
   });
+
+  describe('create', () => {
+    it('deve criar uma nova pessoa', () => {
+        // createPessoaDto
+        // que o hashing service tenha o metodo hash
+        // saber se o hashing service foi chamado com CreatePessoaDto 
+        // saber se o repository create foi chamado com os dados corretos
+        // o retorno final deve ser a nova pessoa criada -> expect 
+    });
+  })
 });
