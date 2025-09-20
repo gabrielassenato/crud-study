@@ -1,6 +1,8 @@
 @baseUrl = http://localhost:3000
 @authToken = {{auth.response.body.accessToken}}
 
+@refreshToken = {{auth.response.body.refreshToken}}
+
 #
 
 
@@ -14,27 +16,27 @@ GET {{baseUrl}}/recados/2/
 
 ### Cria um novo recado
 POST {{baseUrl}}/recados/
+Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-    "texto": "Recado 2",
-    "de": "Manoel",
-    "para": "Tereza"
+    "texto": "Recado 5",
+    "paraId": 5
   }
 
 ### Atualiza um recado existente
-PATCH {{baseUrl}}/recados/2/
+PATCH {{baseUrl}}/recados/4/
+Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-    "texto": "Recado 2 alterado",
-    "de": "Rafael",
-    "para": "Marina",
+    "texto": "Recado 32 alterado",
     "lido": true
   }
 
 ### Deleta um recado
-DELETE {{baseUrl}}/recados/3/
+DELETE {{baseUrl}}/recados/7/
+Authorization: Bearer {{authToken}}
 
 
 #
@@ -61,17 +63,17 @@ Content-Type: application/json
 }
 
 ### Atualiza uma pessoa existente
-PATCH {{baseUrl}}/pessoas/4/
+PATCH {{baseUrl}}/pessoas/3/
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-    "nome": "João Silva",
+    "nome": "Gabriel Souza",
     "password": "novaSenha123"
 }
 
 ### Deleta uma pessoa
-DELETE {{baseUrl}}/pessoas/2/
+DELETE {{baseUrl}}/pessoas/4/
 Authorization: Bearer {{authToken}}
 
 
@@ -86,5 +88,34 @@ Content-Type: application/json
 
 {
     "email": "gabriel@example.com",
-    "password": "senha123"
+    "password": "novaSenha123"
 }
+
+### REFRESH AUTHENTICATE
+# @name refreshAuth
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+    "refreshToken": "{{refreshToken}}"
+}
+
+
+#
+
+# UPLOAD
+
+### Foto da pessoa
+POST {{baseUrl}}/pessoas/upload-picture/
+Authorization: Bearer {{authToken}}
+Content-Type: multipart/form-data;boundary=----BoundaryDelimitadorHttp
+
+------BoundaryDelimitadorHttp
+Content-Disposition: form-data; name="file"; filename="sharingan2.png"
+Content-Type: image/png
+
+< ./dev/images/sharingan2.png
+------BoundaryDelimitadorHttp--
+
+### Ver foto
+GET {{baseUrl}}/pictures/3.png
