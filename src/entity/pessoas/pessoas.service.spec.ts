@@ -5,6 +5,7 @@ import { HashingService } from 'src/auth/hashing/hashing.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { create } from 'domain';
+import e from 'express';
 
 describe('PessoasService', () => {
   let pessoaService: PessoasService;
@@ -51,23 +52,38 @@ describe('PessoasService', () => {
             password: 'novaSenha123'
         }
         const passwordHash = 'HASHEDESENHA';
-        // que o hashing service tenha o metodo hash
-        // saber se o hashing service foi chamado com CreatePessoaDto.password 
-        // saber se o repository create foi chamado com os dados corretos
-        // o retorno final deve ser a nova pessoa criada -> expect 
+        const novaPessoa = { 
+          id: 1, 
+          nome: createPessoaDto.nome,
+          email: createPessoaDto.email,
+          passwordHash
+        };
 
         jest.spyOn(hashingService, 'hash').mockResolvedValue(passwordHash);
+        jest.spyOn(pessoaRepository, 'create').mockReturnValue(novaPessoa as any);
 
-        // act
-        await pessoaService.create(createPessoaDto);
+        // act -> ação
+        const result = await pessoaService.create(createPessoaDto);
 
         // assert
+        
+        // o método hashingService.hash foi chamado com createPessoaDto.password?
         expect(hashingService.hash).toHaveBeenCalledWith(createPessoaDto.password);
+        
+        // o método pessoaRepository.create foi chamado com os dados da 
+        // nova pessoa com o hash de senha gerado por hashingService.hash?
         expect(pessoaRepository.create).toHaveBeenCalledWith({
             nome: createPessoaDto.nome,
             email: createPessoaDto.email,
-            passwordHash: 'HASHEDESENHA'
+            passwordHash
         });
+
+        // o método pessoaRepository.save foi chamado com os dados 
+        // da nova pessoa gerada por pessoaRepository.create?
+        expect(pessoaRepository.save).toHaveBeenCalledWith(novaPessoa);
+
+        //o resultado do método pessoaService.create retornou a nova pessoa criada?
+        expect(result).toEqual(novaPessoa);
     });
   })
 });
