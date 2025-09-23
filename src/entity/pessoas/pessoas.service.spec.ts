@@ -6,6 +6,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { create } from 'domain';
 import e from 'express';
+import { ConflictException } from '@nestjs/common';
 
 describe('PessoasService', () => {
   let pessoaService: PessoasService;
@@ -85,5 +86,12 @@ describe('PessoasService', () => {
         //o resultado do método pessoaService.create retornou a nova pessoa criada?
         expect(result).toEqual(novaPessoa);
     });
-  })
+
+    it('deve lançar ConflictException ao tentar criar uma pessoa com email já existente', async () => {
+        jest.spyOn(pessoaRepository, 'save').mockRejectedValue({
+          code: '23505', // código de erro do PostgreSQL para violação de chave única
+        });
+        await expect(pessoaService.create({} as any)).rejects.toThrow(ConflictException);
+    });
+  });    
 });
