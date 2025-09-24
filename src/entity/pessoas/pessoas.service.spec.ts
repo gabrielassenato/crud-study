@@ -6,7 +6,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { create } from 'domain';
 import e from 'express';
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
+import { find } from 'rxjs';
 
 describe('PessoasService', () => {
   let pessoaService: PessoasService;
@@ -22,6 +23,8 @@ describe('PessoasService', () => {
           useValue: {
             save: jest.fn(),
             create: jest.fn(),
+            findOneBy: jest.fn(),
+            find: jest.fn(),
           },
         },
         {
@@ -46,52 +49,122 @@ describe('PessoasService', () => {
 
   describe('create', () => {
     it('deve criar uma nova pessoa', async () => {
-        // createPessoaDto
-        const createPessoaDto = {
-            email: 'gabriel@email.com',
-            nome: 'Gabriel',
-            password: 'novaSenha123'
-        }
-        const passwordHash = 'HASHEDESENHA';
-        const novaPessoa = { 
-          id: 1, 
-          nome: createPessoaDto.nome,
-          email: createPessoaDto.email,
-          passwordHash
-        };
+      // createPessoaDto
+      const createPessoaDto = {
+        email: 'gabriel@email.com',
+        nome: 'Gabriel',
+        password: 'novaSenha123',
+      };
+      const passwordHash = 'HASHEDESENHA';
+      const novaPessoa = {
+        id: 1,
+        nome: createPessoaDto.nome,
+        email: createPessoaDto.email,
+        passwordHash,
+      };
 
-        jest.spyOn(hashingService, 'hash').mockResolvedValue(passwordHash);
-        jest.spyOn(pessoaRepository, 'create').mockReturnValue(novaPessoa as any);
+      jest.spyOn(hashingService, 'hash').mockResolvedValue(passwordHash);
+      jest.spyOn(pessoaRepository, 'create').mockReturnValue(novaPessoa as any);
 
-        // act -> ação
-        const result = await pessoaService.create(createPessoaDto);
+      // act -> ação
+      const result = await pessoaService.create(createPessoaDto);
 
-        // assert
-        
-        // o método hashingService.hash foi chamado com createPessoaDto.password?
-        expect(hashingService.hash).toHaveBeenCalledWith(createPessoaDto.password);
-        
-        // o método pessoaRepository.create foi chamado com os dados da 
-        // nova pessoa com o hash de senha gerado por hashingService.hash?
-        expect(pessoaRepository.create).toHaveBeenCalledWith({
-            nome: createPessoaDto.nome,
-            email: createPessoaDto.email,
-            passwordHash
-        });
+      // assert
 
-        // o método pessoaRepository.save foi chamado com os dados 
-        // da nova pessoa gerada por pessoaRepository.create?
-        expect(pessoaRepository.save).toHaveBeenCalledWith(novaPessoa);
+      // o método hashingService.hash foi chamado com createPessoaDto.password?
+      expect(hashingService.hash).toHaveBeenCalledWith(
+        createPessoaDto.password,
+      );
 
-        //o resultado do método pessoaService.create retornou a nova pessoa criada?
-        expect(result).toEqual(novaPessoa);
+      // o método pessoaRepository.create foi chamado com os dados da
+      // nova pessoa com o hash de senha gerado por hashingService.hash?
+      expect(pessoaRepository.create).toHaveBeenCalledWith({
+        nome: createPessoaDto.nome,
+        email: createPessoaDto.email,
+        passwordHash,
+      });
+
+      // o método pessoaRepository.save foi chamado com os dados
+      // da nova pessoa gerada por pessoaRepository.create?
+      expect(pessoaRepository.save).toHaveBeenCalledWith(novaPessoa);
+
+      //o resultado do método pessoaService.create retornou a nova pessoa criada?
+      expect(result).toEqual(novaPessoa);
     });
 
     it('deve lançar ConflictException ao tentar criar uma pessoa com email já existente', async () => {
-        jest.spyOn(pessoaRepository, 'save').mockRejectedValue({
-          code: '23505', // código de erro do PostgreSQL para violação de chave única
-        });
-        await expect(pessoaService.create({} as any)).rejects.toThrow(ConflictException);
+      jest.spyOn(pessoaRepository, 'save').mockRejectedValue({
+        code: '23505', // código de erro do PostgreSQL para violação de chave única
+      });
+      await expect(pessoaService.create({} as any)).rejects.toThrow(
+        ConflictException,
+      );
     });
-  });    
+
+    it('deve lançar um erro genérico quando um erro for lançado', async () => {
+      jest
+        .spyOn(pessoaRepository, 'save')
+        .mockRejectedValue(new Error('Erro genérico'));
+
+      await expect(pessoaService.create({} as any)).rejects.toThrow(
+        new Error('Erro genérico'),
+      );
+    });
+  });
+
+  describe('findOne', () => {
+    it('Deve retornar uma pessoa se a pessoa for encontrada', async () => {
+      const pessoaId = 1;
+      const pessoaEncontrada = {
+        id: pessoaId,
+        nome: 'Gabriel',
+        email: 'gabriel@email.com',
+        passwordHash: '123456',
+      };
+
+      jest.spyOn(pessoaRepository, 'findOneBy').mockResolvedValue(pessoaEncontrada as any);
+
+      const result = await pessoaService.findOne(pessoaId);
+
+      expect(result).toEqual(pessoaEncontrada);
+    });
+
+    it('Deve lançar um erro quando uma pessoa não for encontrada', async () => {
+      const pessoaId = 1;
+      const pessoaEncontrada = {
+        id: pessoaId,
+        nome: 'Gabriel',
+        email: 'gabriel@email.com',
+        passwordHash: '123456',
+      };
+
+      await expect (pessoaService.findOne(pessoaId)).rejects.toThrow(
+        new NotFoundException(`Pessoa com id 1 não encontrada`)
+      );
+    });
+  });
+
+  describe('findAll', () => {
+    it('Deve retornar todas as pessoas', async () => {
+      const pessoasMock: Pessoa[] = [
+        {
+          id: 1,
+          nome: 'Gabriel',
+          email: 'gabriel@email.com',
+          passwordHash: '123456',
+        } as Pessoa,
+      ];
+
+      jest.spyOn(pessoaRepository, 'find').mockResolvedValue(pessoasMock);
+
+      const result = await pessoaService.findAll();
+
+      expect(result).toEqual(pessoasMock);
+      expect(pessoaRepository.find).toHaveBeenCalledWith({
+        order: {
+          createdAt: 'DESC',
+        },
+      });
+    });
+  });
 });
