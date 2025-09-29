@@ -6,8 +6,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { create } from 'domain';
 import e from 'express';
-import { ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { find } from 'rxjs';
+import * as path from 'path';
+import * as fs from 'fs/promises';
+
+jest.mock('fs/promises'); // Mocka o módulo fs
 
 describe('PessoasService', () => {
   let pessoaService: PessoasService;
@@ -124,7 +133,9 @@ describe('PessoasService', () => {
         passwordHash: '123456',
       };
 
-      jest.spyOn(pessoaRepository, 'findOneBy').mockResolvedValue(pessoaEncontrada as any);
+      jest
+        .spyOn(pessoaRepository, 'findOneBy')
+        .mockResolvedValue(pessoaEncontrada as any);
 
       const result = await pessoaService.findOne(pessoaId);
 
@@ -140,8 +151,8 @@ describe('PessoasService', () => {
         passwordHash: '123456',
       };
 
-      await expect (pessoaService.findOne(pessoaId)).rejects.toThrow(
-        new NotFoundException(`Pessoa com id 1 não encontrada`)
+      await expect(pessoaService.findOne(pessoaId)).rejects.toThrow(
+        new NotFoundException(`Pessoa com id 1 não encontrada`),
       );
     });
   });
@@ -171,7 +182,7 @@ describe('PessoasService', () => {
   });
 
   describe('update', () => {
-    it ('Deve atualizar uma pessoa se for autorizado', async () => {
+    it('Deve atualizar uma pessoa se for autorizado', async () => {
       // arrange
       const pessoaId = 1;
       const updatePessoaDto = {
@@ -180,25 +191,39 @@ describe('PessoasService', () => {
       };
       const tokenPayload = { sub: pessoaId } as any;
       const passwordHash = 'HASHEDESENHA';
-      const updatePessoa = {id: pessoaId, nome: 'Gabriel Atualizado', passwordHash};
+      const updatePessoa = {
+        id: pessoaId,
+        nome: 'Gabriel Atualizado',
+        passwordHash,
+      };
 
       jest.spyOn(hashingService, 'hash').mockResolvedValueOnce(passwordHash);
-      jest.spyOn(pessoaRepository, 'preload').mockResolvedValue(updatePessoa as any);
-      jest.spyOn(pessoaRepository, 'save').mockResolvedValue(updatePessoa as any);
+      jest
+        .spyOn(pessoaRepository, 'preload')
+        .mockResolvedValue(updatePessoa as any);
+      jest
+        .spyOn(pessoaRepository, 'save')
+        .mockResolvedValue(updatePessoa as any);
 
       // act
-      const result = await pessoaService.update(pessoaId, updatePessoaDto as any, tokenPayload);
+      const result = await pessoaService.update(
+        pessoaId,
+        updatePessoaDto as any,
+        tokenPayload,
+      );
 
-      //assert 
+      //assert
       expect(result).toEqual(updatePessoa);
-      expect(hashingService.hash).toHaveBeenCalledWith(updatePessoaDto.password);
+      expect(hashingService.hash).toHaveBeenCalledWith(
+        updatePessoaDto.password,
+      );
       expect(pessoaRepository.preload).toHaveBeenCalledWith({
         id: pessoaId,
         nome: updatePessoaDto.nome,
         passwordHash,
       });
       expect(pessoaRepository.save).toHaveBeenCalledWith(updatePessoa);
-    })
+    });
 
     it('deve lançar ForbiddenException se usuário não autorizado', async () => {
       // arrange
@@ -290,6 +315,83 @@ describe('PessoasService', () => {
 
       await expect(
         pessoaService.remove(pessoaId, tokenPayload),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('uploadPicture', () => {
+    it('deve salvar a imagem corretamente e atualizar a pessoa', async () => {
+      // arrange
+      const mockFile = {
+        originalname: 'test.png',
+        size: 2000,
+        buffer: Buffer.from('file content'),
+      } as Express.Multer.File;
+
+      const mockPessoa = {
+        id: 1,
+        nome: 'Gabriel',
+        email: 'gabriel@email.com',
+      } as Pessoa;
+
+      const tokenPayload = { sub: 1 } as any;
+
+      jest.spyOn(pessoaService, 'findOne').mockResolvedValue(mockPessoa);
+      jest.spyOn(pessoaRepository, 'save').mockResolvedValue({
+        ...mockPessoa,
+        picture: '1.png',
+      });
+
+      const filePath = path.resolve(process.cwd(), 'pictures', '1.png');
+
+      // act
+      const result = await pessoaService.uploadPicture(mockFile, tokenPayload);
+
+      // assert
+      expect(fs.writeFile).toHaveBeenCalledWith(filePath, mockFile.buffer);
+      expect(pessoaRepository.save).toHaveBeenCalledWith({
+        ...mockPessoa,
+        picture: '1.png',
+      });
+      expect(result).toEqual({
+        ...mockPessoa,
+        picture: '1.png',
+      });
+    });
+
+    it('deve lançar BadRequestException se o arquivo for muito pequeno', async () => {
+      // arrange
+      const mockFile = {
+        originalname: 'test.png',
+        size: 500, // menor que 1024 bytes
+        buffer: Buffer.from('small content'),
+      } as Express.Multer.File;
+
+      const tokenPayload = { sub: 1 } as any;
+
+      // act & assert
+      await expect(
+        pessoaService.uploadPicture(mockFile, tokenPayload),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('deve lançar NotFoundException se a pessoa não for encontrada', async () => {
+      // arrange
+      const mockFile = {
+        originalname: 'test.png',
+        size: 2000,
+        buffer: Buffer.from('file content'),
+      } as Express.Multer.File;
+
+      const tokenPayload = { sub: 1 } as any;
+
+      jest
+        .spyOn(pessoaService, 'findOne')
+        .mockRejectedValue(new NotFoundException());
+
+      // act & assert
+      await expect(
+        pessoaService.uploadPicture(mockFile, tokenPayload),
       ).rejects.toThrow(NotFoundException);
     });
   });
