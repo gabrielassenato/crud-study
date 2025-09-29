@@ -34,7 +34,7 @@ export class PessoasController {
 
   @UseGuards(AuthTokenGuard)
   @Get()
-  findAll(@Req() req: Request) {
+  findAll() {
     return this.pessoasService.findAll();
   }
 
