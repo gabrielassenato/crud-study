@@ -103,19 +103,11 @@ export class PessoasService {
   }
 
   async remove(id: number, tokenPayload: TokenPayloadDto) {
-    const pessoa = await this.pessoasRepository.findOneBy({
-      id,
-    });
-
-    if (!pessoa) {
-      throw new NotFoundException(`Pessoa com id ${id} não encontrada`);
-    }
-
+    const pessoa = await this.findOne(id);
 
     if (pessoa.id !== tokenPayload.sub) {
       throw new ForbiddenException('Você não pode apagar uma pessoa que não seja você.',);
     }
-
 
     return this.pessoasRepository.remove(pessoa);
   }
