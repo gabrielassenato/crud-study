@@ -11,14 +11,14 @@ export class CreatePessoaDto {
   @IsNotEmpty()
   @MinLength(2)
   @MaxLength(100)
-  readonly nome: string;
+  nome: string;
 
   @IsEmail()
   @IsNotEmpty()
-  readonly email: string; // e-mail será o usuário para login
+  email: string; // e-mail será o usuário para login
 
   @IsString()
   @IsNotEmpty()
   @MinLength(6)
-  readonly password: string; // sera convertida em hash antes de salvar no banco
+  password: string; // sera convertida em hash antes de salvar no banco
 }
