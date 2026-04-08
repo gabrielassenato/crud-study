@@ -8,8 +8,19 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import * as path from 'path';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 @Module({
   imports: [
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000, // time to live em ms
+          limit: 60, // maximo de requisições por ttl
+          blockDuration: 5000, // tempo que o cliente fica bloqueado após atingir o limite de requisições
+        },
+      ],
+    }),
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),
@@ -32,7 +43,12 @@ import * as path from 'path';
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, 
+    {
+    provide: APP_GUARD,
+    useClass: ThrottlerGuard
+    }
+  ],
 })
 export class AppModule {
   constructor() {}
