@@ -57,8 +57,8 @@ POST {{baseUrl}}/pessoas/
 Content-Type: application/json
 
 {
-    "nome": "João",
-    "email": "joao@example.com",
+    "nome": "Gabriel",
+    "email": "gabriel@example.com",
     "password": "senha123"
 }
 
@@ -88,7 +88,7 @@ Content-Type: application/json
 
 {
     "email": "gabriel@example.com",
-    "password": "novaSenha123"
+    "password": "senha123"
 }
 
 ### REFRESH AUTHENTICATE

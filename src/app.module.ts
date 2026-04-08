@@ -20,7 +20,7 @@ import * as path from 'path';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      autoLoadEntities: Boolean(process.env.DB_AUTOLOADENTITIES),
+      autoLoadEntities: Boolean(process.env.DB_AUTOLOADENTITIES), // carrega todas as entidades 
       synchronize: Boolean(process.env.DB_SYNCHRONIZE),
     }),
     ServeStaticModule.forRoot({
